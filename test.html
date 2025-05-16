@@ -2,39 +2,49 @@
 <html lang="en">
 
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title></title>
-  <link href="css/style.css" rel="stylesheet">
-
 </head>
 
 <body>
 
+  <video id="localVideo" autoplay controls width=480px height=360px></video>
+  <br />
+  <button id="publish_start">Start Publishing</button>
+  <button id="publish_stop">Stop Publishing</button>
+  <br />
+  <p id="status_info">Offline</p>
 
-  <script type="module">
-
-    import {WebRTCAdaptor} from '@antmedia/webrtc_adaptor';
-
-    const webRTCAdaptor = new WebRTCAdaptor({
-      websocket_url: "wss://your-domain.tld:5443/WebRTCAppEE/websocket",
-      mediaConstraints: {
-        video: true,
-        audio: true,
-      },
-      peerconnection_config: {
-        'iceServers': [{'urls': 'stun:stun1.l.google.com:19302'}]
-      },
-      sdp_constraints: {
-        OfferToReceiveAudio: false,
-        OfferToReceiveVideo: false,
-      },
-      dataChannelEnabled: true | false, // enable or disable data channel
-      callback: (info, obj) => { }, // check info callbacks bellow
-      callbackError: function (error, message) { }, // check error callbacks bellow
-    });
-
-  </script>
 </body>
+
+<script type="module">
+
+  import {WebRTCAdaptor} from '@antmedia/webrtc_adaptor';
+  var webRTCAdaptor = new WebRTCAdaptor({
+    websocket_url: "wss://test.antmedia.io:5443/live/websocket",
+    localVideoElement: document.getElementById("localVideo"),
+
+    callback: (info, obj) => {
+      console.log("callback info: " + info);
+      if (info == "publish_started") {
+        console.log("publish started");
+        statusInfo.innerHTML = "Broadcasting - Stream Id: " + streamId;
+      }
+      else if (info == "publish_finished") {
+        console.log("publish finished")
+        statusInfo.innerHTML = "Offline"
+
+      }
+    },
+
+  });
+  var streamId = "stream" + parseInt(Math.random() * 999999);
+  var statusInfo = document.getElementById("status_info");
+  document.getElementById("publish_start").addEventListener("click", () => {
+    webRTCAdaptor.publish(streamId)
+  })
+
+  document.getElementById("publish_stop").addEventListener("click", () => {
+    webRTCAdaptor.stop(streamId)
+  })
+</script>
 
 </html>
